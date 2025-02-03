@@ -1,0 +1,5 @@
+{
+    "julia.persistentSession.changeDirOnLaunch": true,
+    "julia.execution.codeInREPL": true,
+    "julia.executablePath": "/opt/homebrew/bin/julia"
+}
