@@ -1,0 +1,8 @@
+#Number of particles
+N = 1000
+#Packing fraction or number densty. If the temperature (below) is zero, the density is interpreted as a packing fraction.
+density = 0.5 
+#Temperature--set to zero for hard-sphere fluid
+T = 0.0
+#Timestep
+dt = 0.001
