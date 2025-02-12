@@ -2,11 +2,22 @@ module MonteCarlo
 
 # Perform a Monte Carlo simulation of a fluid. Compute functions from the configuraitons 
 # and keep averages.
+include("Accessors.jl")
+using .Accessors
+
+
+dot = (x,y) -> sum(x .* y)
 
 function pbc(i::Int64, j::Int64, sys::hard_spheres)
     # Calculate the distance between particles i and j with periodic boundary conditions.
-
-    # Use the minimum image convention: rij[k] = rij[k] - L*round(rij[k]/L)
+    r = positions(sys)
+    L = box_length(sys)
+    Linv = 1.0/L
+    rᵢⱼ = r[:, i] - r[:, j]
+    # Apply periodic boundary conditions
+    rᵢⱼ = rᵢⱼ .- L * round.(Int64, rᵢⱼ .* Linv)
+    # Compute the squared distance
+    dᵢⱼ² = dot(rᵢⱼ, rᵢⱼ)
     return rᵢⱼ, dᵢⱼ²
 end
 
@@ -33,11 +44,12 @@ function sweep!(sys::hard_spheres)
 end
 
 function adjust_dr!(sys::hard_spheres, δ::Float64, mean_rate::Float64)
-    # Adjust the move size dr by scaling_factor, either increasing it or decreasing it multiplicatively.
+    # Adjust the move size dr to achieve target acceptance rate:
+    # If acceptance rate is too low, decrease dr; if too high, increase dr
     if mean_rate <= sys.acceptance
-        sys.dr *= (1 - δ)
-    else
         sys.dr *= (1 + δ)
+    else
+        sys.dr *= (1 - δ)
     end
 end
 

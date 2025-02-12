@@ -4,7 +4,7 @@ module HardSpheres
 include("MonoAtomic.jl")
 using .MonoAtomic
 
-export hard_spheres, positions, velocities, forces, box_length
+export hard_spheres
 # Usage here would be the following:
 # sys = MonoAtomic.system(N=1000, ϕ=0.5)
 # hs = hard_spheres(sys)
@@ -56,11 +56,5 @@ mutable struct hard_spheres
         new(sys_, dr_, acceptance_)
     end
 end
-
-#Accessor methods:
-positions(hs::hard_spheres) = hs.system.atoms.r
-velocities(hs::hard_spheres) = hs.system.atoms.v
-forces(hs::hard_spheres) = hs.system.atoms.f
-box_length(hs::hard_spheres) = hs.system.L
 
 end

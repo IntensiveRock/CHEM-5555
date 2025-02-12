@@ -62,7 +62,23 @@ struct system
 end
 
 function cubic_xtal!(sys::system)
+    nside = round(Int64, sys.N^(1/3)) # Use floor to get the largest perfect cube that fits
+    if nside^3 != sys.N
+        error("Number of particles N ($(sys.N)) must be a perfect cube. Nearest perfect cube is $(nside^3).")
+    end
     #Initialize the positions of the particles in a cubic lattice.
+    a = sys.L / nside #Lattice constant
+    positions = zeros(Float64, 3, sys.N)
+    i = 1
+    for nx = 1:nside
+        for ny = 1:nside
+            for nz = 1:nside
+                positions[:, i] = [(nx - 1) * a, (ny - 1) * a, (nz - 1) * a]
+                i += 1
+            end
+        end
+    end
+    sys.atoms.r .= positions
 end
 
 function init_velocities!(sys::system)
