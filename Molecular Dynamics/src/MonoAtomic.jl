@@ -19,6 +19,8 @@ Fields:
 
 """
 module MonoAtomic
+include("Lattices.jl")
+using .Lattices
 
 using UnPack, TOML
 
@@ -39,9 +41,10 @@ struct system
     ρ::Float64
     T::Float64
     L::Float64
+    lattice::String
     dt::Float64
     atoms::config
-    function system(; N::Int64=1000, ρ::Float64=0.8, T::Float64=1.5, dt::Float64=0.001)
+    function system(; N::Int64=1000, ρ::Float64=0.8, T::Float64=1.5, lattice::String="sc",dt::Float64=0.001)
         N_ = N
         ρ_ = ρ
         T_ = T
@@ -51,34 +54,27 @@ struct system
         v_ = zeros(Float64, 3, N_)
         f_ = zeros(Float64, 3, N_)
         dt_ = 0.001
+        r_ = deepcopy( crystal(N_, L_, lattice) )
         atoms_ = config(r_, v_, f_)
-        new(N_, ρ_, T_, L_, dt_, atoms_)
+        new(N_, ρ_, T_, L_, lattice, dt_, atoms_)
     end
     function system(filename::String)
         parameters = TOML.parsefile(filename)
-        @unpack N, density, T, dt = parameters
-        system(N=N, ρ=density, T=T, dt=dt)
+        @unpack N, density, T, dt, lattice = parameters
+        system(N=N, ρ=density, T=T, lattice=lattice,dt=dt)
     end
 end
 
-function cubic_xtal!(sys::system)
-    nside = round(Int64, sys.N^(1/3)) # Use floor to get the largest perfect cube that fits
-    if nside^3 != sys.N
-        error("Number of particles N ($(sys.N)) must be a perfect cube. Nearest perfect cube is $(nside^3).")
+function crystal(N::Int64, L::Float64, lattice::String)
+    if lattice == "sc"
+        return sc_lattice(N, L)
+    elseif lattice == "bcc"
+        return bcc_lattice(N, L)
+    elseif lattice == "fcc"
+        return fcc_lattice(N, L)
+    else
+        error("Invalid lattice type. Choose from 'sc', 'bcc', or 'fcc'.")
     end
-    #Initialize the positions of the particles in a cubic lattice.
-    a = sys.L / nside #Lattice constant
-    positions = zeros(Float64, 3, sys.N)
-    i = 1
-    for nx = 1:nside
-        for ny = 1:nside
-            for nz = 1:nside
-                positions[:, i] = [(nx - 1) * a, (ny - 1) * a, (nz - 1) * a]
-                i += 1
-            end
-        end
-    end
-    sys.atoms.r .= positions
 end
 
 function init_velocities!(sys::system)
@@ -96,7 +92,6 @@ function init_velocities!(sys::system)
 end
 
 function initalize!(sys::system)
-    cubic_xtal!(sys)
     init_velocities!(sys)
 end
 
