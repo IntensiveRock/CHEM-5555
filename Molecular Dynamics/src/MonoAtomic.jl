@@ -53,8 +53,8 @@ struct system
         r_ = zeros(Float64, 3, N_)
         v_ = zeros(Float64, 3, N_)
         f_ = zeros(Float64, 3, N_)
-        dt_ = 0.001
         r_ = deepcopy( crystal(N_, L_, lattice) )
+        init_velocities!(v_, T_, N_)
         atoms_ = config(r_, v_, f_)
         new(N_, ρ_, T_, L_, lattice, dt_, atoms_)
     end
@@ -77,22 +77,15 @@ function crystal(N::Int64, L::Float64, lattice::String)
     end
 end
 
-function init_velocities!(sys::system)
+function init_velocities!(v::Matrix{Float64}, T::Float64, N::Int64)
     #Initialize the velocities of the particles from a Gaussian,
-    @views begin #This is how you make in-place modifications in Julia.
-        v = sys.atoms.v
-        v .= randn(Float64, 3, sys.N)
-        #Calculate the center of mass velocity
-        vcm = sum(v, dims=2) / sys.N
-        #Subtract the center of mass velocity from the velocities
-        v .-= vcm
-        #Scale the velocities to the desired temperature
-        v *= sqrt(sys.T)
-    end
-end
-
-function initalize!(sys::system)
-    init_velocities!(sys)
+    v .= randn(3, N)
+    #Calculate the center of mass velocity
+    vcm = sum(v, dims=2) / N
+    #Subtract the center of mass velocity from the velocities
+    v .-= vcm
+    #Scale the velocities to the desired temperature
+    v *= sqrt(T)
 end
 
 end

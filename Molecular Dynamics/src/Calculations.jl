@@ -1,5 +1,14 @@
 module Calculations
 
+export Calculation, initialize!, compute!, finalize!
+
+abstract type Calculation end
+
+# Define interface functions
+function initialize!(calc::Calculation, system)
+    error("initialize! not implemented for $(typeof(calc))")
+end
+
 """ This is a generic interface for calculations that can be performed on a system.
     It defines the basic structure for initializing, computing, and finalizing calculations.
     
@@ -27,20 +36,12 @@ module Calculations
     This interface allows for flexibility and extensibility in adding new types of calculations to the system.
     """
 
-abstract type Calculation end
-
 function compute!(calc::Calculation, system)
     error("compute! not implemented for $(typeof(calc))")
-end
-
-function initialize!(calc::Calculation, system)
-    nothing
 end
 
 function finalize!(calc::Calculation)
     nothing
 end
-
-export Calculation, compute!, initialize!, finalize!
 
 end
